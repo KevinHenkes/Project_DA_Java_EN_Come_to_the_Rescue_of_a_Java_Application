@@ -1,6 +1,8 @@
-package com.hemebiotech.analytics;
+package com.hemebiotech.analytics.utility;
 
 import java.util.List;
+
+import com.hemebiotech.analytics.entity.SymptomsSearched;
 
 /**
  * Anything that will read symptom data from a source
@@ -16,5 +18,12 @@ public interface ISymptomReader {
 	 * 
 	 * @return a raw listing of all Symptoms obtained from a data source, duplicates are possible/probable
 	 */
-	List<String> GetSymptoms ();
+	List<String> GetSymptoms();
+	
+	/**
+	 * If no data is available, return an empty List
+	 * 
+	 * @return a raw listing of all Symptoms searched obtained from a data source, duplicates are not possible
+	 */
+	List<SymptomsSearched> GetSymptomsSearchedForCsv(String csvSeparator);
 }

@@ -1,48 +1,54 @@
 package com.hemebiotech.analytics;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.util.List;
+
+import com.hemebiotech.analytics.entity.SymptomsSearched;
+import com.hemebiotech.analytics.utility.ReadSymptomDataFromFile;
+import com.hemebiotech.analytics.utility.WriteSymptomDataToFile;
 
 /**
  * Counts the symptoms of patients.
  *
  */
 public class AnalyticsCounter {
-	private static int headacheCount = 0;
-	private static int rashCount = 0;
-	private static int pupilCount = 0;
-	
-	public static void main(String args[]) throws Exception {
-		// first get input
-		BufferedReader reader = new BufferedReader (new FileReader("symptoms.txt"));
-		String line = reader.readLine();
-
-		// counts headaches
-		int i = 0;
-		int headCount = 0;	
-		while (line != null) {
-			i++;
-			System.out.println("symptom from file: " + line);
-			if (line.equals("headache")) {
-				headCount++;
-				System.out.println("number of headaches: " + headCount);
+	public static void main(String args[]) {
+		final String PATH_INPUT_DATA = "symptoms.txt";
+		final String PATH_SYMTPOMS_SEARCHED = "symptoms_searched.csv";
+		final String PATH_OUTPUT = "result.out";
+		final String CSV_SEPARATOR = ";";
+		final String MODE_SEARCH_EQUAL = "equal";
+		final String MODE_SEARCH_LIKE = "like";
+		
+		
+		List<String> symptomsData = new ReadSymptomDataFromFile(PATH_INPUT_DATA).GetSymptoms();
+		List<SymptomsSearched> symptomsSearched = new ReadSymptomDataFromFile(PATH_SYMTPOMS_SEARCHED).GetSymptomsSearchedForCsv(CSV_SEPARATOR);
+		
+		for (int i = 0; i < symptomsData.size(); i++) {
+			System.out.println("symptom from file: " + i);
+			
+			for(SymptomsSearched symptom : symptomsSearched) {
+				String modeSearch = symptom.getModeSearch();
+				
+				// Process comparison according to mode search
+				if (modeSearch.equals(MODE_SEARCH_EQUAL)) {
+					if(symptomsData.get(i).equals(symptom.getName())) {
+						incrementAndPrintActualSymptom(symptom);
+					}
+				} else if(modeSearch.equals(MODE_SEARCH_LIKE)) {
+					if (symptomsData.get(i).contains(symptom.getName())) {
+						incrementAndPrintActualSymptom(symptom);
+					}
+				} else {
+					System.err.println("Mode search not found for symptom searched: " + symptom.getName());
+				}
 			}
-			else if (line.equals("rush")) {
-				rashCount++;
-			}
-			else if (line.contains("pupils")) {
-				pupilCount++;
-			}
-			// get another symptom
-			line = reader.readLine();	
 		}
 		
-		// next generate output
-		FileWriter writer = new FileWriter ("result.out");
-		writer.write("headache: " + headacheCount + "\n");
-		writer.write("rash: " + rashCount + "\n");
-		writer.write("dialated pupils: " + pupilCount + "\n");
-		writer.close();
+		new WriteSymptomDataToFile(PATH_OUTPUT).WriteResultsToFile(symptomsSearched);
+	}
+	
+	public static void incrementAndPrintActualSymptom(SymptomsSearched symptom) {
+		symptom.incrementOccurrences();
+		System.out.println("number of " + symptom.getName() + ": " + symptom.getOccurrences());
 	}
 }
